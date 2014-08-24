@@ -58,6 +58,7 @@ public class API
     }
     static public user Messaging(user bm) throws IOException, ClassNotFoundException
     {
+        /*
                         boolean b = us.IsUsed(accounts); //Если мыла нет в списке аккаунтов
                         if (!b)
                         {
@@ -96,6 +97,8 @@ public class API
                         {
                             return null;
                         }
+        */
+        return null;
     }
     static public user Find_user(String path,String mail) throws IOException, ClassNotFoundException
     {
