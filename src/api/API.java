@@ -4,6 +4,7 @@ import ice.BaseMessage;
 import ice.DataCass;
 import ice.DataForRecord;
 import ice.Itog;
+import ice.forget;
 import ice.login;
 import ice.ping;
 import ice.user;
@@ -34,99 +35,164 @@ public class API
         toreg=t;
     }
     
-    static public login Messaging(login bm) throws IOException, ClassNotFoundException
+    static public user Messaging(login bm) throws IOException, ClassNotFoundException
     {
-                        if (bm.Authentication(accpath))
-                        {
-                            return bm;
-                        }
-                        else
-                        {
-                            return null;
-                        }
+        user u = Find_user(accpath,bm.get_log());
+        if(u != null)
+        {
+            if(u.GetPass().equalsIgnoreCase(bm.get_pass()))
+            {
+                return u;   
+            }
+        }
+        return null;
     }
     static public ping Messaging(ping bm) throws IOException, ClassNotFoundException
     {
-                        if (bm.GetVersion().equals(version))
-                        {
-                            return bm;
-                        }
-                        else
-                        {
-                            return null;
-                        }
-    }
-    static public user Messaging(user bm) throws IOException, ClassNotFoundException
-    {
-        /*
-                        boolean b = us.IsUsed(accounts); //Если мыла нет в списке аккаунтов
-                        if (!b)
-                        {
-                            us.AddMessage(toreg);
-                            System.out.println(new Date().toString() + " Registration successful");
-                            BaseMessage request = (BaseMessage) new ping("registrationok");
-                            try
-                            {
-                                SendEmail.sendText(us.GetMail(), "Регистрация", "Привет от ICENGO! \nВаша заявка успешно добавлена и будет обработана в течении нескольких минут. \nСпасибо."); //Запилить текст сообщения в файл
-                                System.out.println(new Date().toString() + " Send Registration Mail");
-                            }
-                            catch (Exception e)
-                            {
-                                System.err.println(e.toString());
-                                request = (BaseMessage) new ping("sobed");
-                            }
-                            outputStream.writeObject(request);
-                            System.out.println(new Date().toString() + " Registration request send");
-                        }
-                        else
-                        {
-                            //Если мыло есть - ping("mailisused")
-                            System.out.println(new Date().toString() + " Mail is used.");
-
-                            BaseMessage request = (BaseMessage) new ping("mailisused");
-                            outputStream.writeObject(request);
-
-                            System.out.println(new Date().toString() + " Mail is used send");
-
-                        }
-                        if (bm.IsUsed(accpath))
-                        {
-                            return bm;
-                        }
-                        else
-                        {
-                            return null;
-                        }
-        */
-        return null;
-    }
-    static public user Find_user(String path,String mail) throws IOException, ClassNotFoundException
-    {
-        File f = File_Exists(path);
-        if(f==null)
+        if (bm.GetVersion().equals(version))
+        {
+            return bm;
+        }
+        else
         {
             return null;
         }
-        FileInputStream fis = new FileInputStream(f);
-        ObjectInputStream read = new ObjectInputStream(fis);
-            List<String> accounts = null;
-                if ((accounts = (List<String>) read.readObject()) != null)
+    }
+    static public user Messaging(user bm) throws IOException, ClassNotFoundException
+    {
+        bm = Find_user(accpath, bm.GetMail());
+        if (bm!=null)
+        {
+            AddMessage(bm, toreg);
+        }
+            return bm;
+    }
+    static public user Messaging(forget bm) throws IOException, ClassNotFoundException
+    {
+        user u = Find_user(accpath, bm.log);
+        return u;
+    }
+    static public user Find_user(String path,String mail) throws IOException, ClassNotFoundException
+    {
+        File f = new File(path);
+            if (!f.exists())
+            {
+                return null;
+            }
+        List<BaseMessage> loglist =  GetBM_List(path);
+            if (loglist != null)
+            {
+                for (BaseMessage bm : loglist)
                 {
-                    for (String string : accounts)
+                    user tmp = (user) bm;
+                    if (tmp.GetMail().equalsIgnoreCase(mail))//mail is used
                     {
-                        user tmp = new user(string);
-                        if (tmp.GetMail().equalsIgnoreCase(mail))//mail is used
-                        {
-                            return tmp;
-                        }
+                        return tmp;
                     }
                 }
-            fis.close();
-            read.close();
+            }
+        return null;
+    }
+    static public Itog Find_Itog(String path, String mail) throws IOException, ClassNotFoundException
+    {
+        File f = new File(path);
+            if (!f.exists())
+            {
+                return null;
+            }
+        List<BaseMessage> loglist =  GetBM_List(path);
+            if (loglist != null)
+            {
+                for (BaseMessage bm : loglist)
+                {
+                    Itog tmp = (Itog) bm;
+                    if (tmp.user_email.equalsIgnoreCase(mail))//mail is used
+                    {
+                        return tmp;
+                    }
+                }
+            }
+        return null;
+    }
+    static public Itog Get_Itog(String message, List<BaseMessage> loglist)
+    {
+        for (BaseMessage bm : loglist)
+        {
+            if (((Itog) bm).user_email.equalsIgnoreCase(message))
+            {
+                return (Itog) bm;
+            }
+        }
+        return null;
+    }
+    static public List<BaseMessage> Set_Itog(Itog itg, List<BaseMessage> loglist)
+    {
+        for (int i=0;i<loglist.size();i++)
+        {
+            if (((Itog) loglist.get(i)).user_email.equalsIgnoreCase(itg.user_email))
+            {
+                loglist.set(i,(BaseMessage)itg);
+                return loglist;
+            }
+        }
+        return null;
+    }
+    static public List<BaseMessage> Set_DFR(DataForRecord dfr, List<BaseMessage> loglist)
+    {
+        for (int i=0;i<loglist.size();i++)
+        {
+            if (loglist.get(i).getClass() == DataForRecord.class && ((DataForRecord) loglist.get(i)).getTypeEvent() == dfr.getTypeEvent())
+            {
+                loglist.set(i,(BaseMessage)dfr);
+                return loglist;
+            }
+        }
         return null;
     }
     
-    public void AddMessage(BaseMessage bm, String path) throws IOException, FileNotFoundException, ClassNotFoundException
+    static public ping GetStatusSession(String path, String mail) throws IOException, FileNotFoundException, ClassNotFoundException
+    {
+        Itog itg = Find_Itog(path, mail);
+        if(itg!=null)
+        {
+            if(itg.SS==Itog.StatusSession.not_open)
+            {
+                return new ping("SessionNotOpen"); 
+            }
+            if(itg.SS==Itog.StatusSession.open)
+            {
+                return new ping("SessionAlreadyOpen"); 
+            }
+            if(itg.SS==Itog.StatusSession.close)
+            {
+                return new ping("SessionAlreadyClose"); 
+            }
+        }
+        return new ping("ErrorStatusSession"); 
+    }
+    
+    static public BaseMessage Find_BM(BaseMessage newbm, String path) throws IOException, FileNotFoundException, ClassNotFoundException
+    {
+        File f = new File(path);
+            if (!f.exists())
+            {
+                return null;
+            }
+        List<BaseMessage> loglist =  GetBM_List(path);
+            if (loglist != null)
+            {
+                for (BaseMessage bm : loglist)
+                {
+                    if (bm.equals(newbm))//is used
+                    {
+                        return bm;
+                    }
+                }
+            }
+        return null;
+    }
+    
+    static public void AddMessage(BaseMessage bm, String path) throws IOException, FileNotFoundException, ClassNotFoundException
     {
         File f = new File(path);
             if (!f.exists())
@@ -143,7 +209,11 @@ public class API
                     loglist = new ArrayList();
                     loglist.add(bm);
                 }
-            FileOutputStream fos = new FileOutputStream(f);
+            AddMessage(loglist, path);
+    }
+    static public void AddMessage(List<BaseMessage> loglist, String path) throws IOException, FileNotFoundException, ClassNotFoundException
+    {
+            FileOutputStream fos = new FileOutputStream(path);
             ObjectOutputStream oos = new ObjectOutputStream(fos); // Файл нужно перезаписывать новым листом
                 oos.writeObject(loglist);
             oos.close();
@@ -198,19 +268,19 @@ public class API
             }   
         return newitog;
     }
-    static public Itog Calculate_File_Itog(Itog newitog,user myuser, String path) throws IOException, FileNotFoundException, ClassNotFoundException
+    static public Itog Calculate_Itog(Itog newitog,user myuser, String path) throws IOException, FileNotFoundException, ClassNotFoundException
     {
-        File f = File_Exists(path);
-        if(f==null)
-        {
-            return null;
-        }
             DataForRecord dfr;
             newitog.day_otw = API.weektoString(newitog.date_open.getDay());
             dfr = Get_DFR(DataForRecord.TypeEvent.open,path);
             if(dfr!=null)
             {
                 Itog_DFR(newitog,dfr);
+                ping p = Get_ping("open", path);
+                if(p != null)
+                {
+                    newitog.date_open = p.GetDate();
+                }
                 newitog.SS=Itog.StatusSession.open;
             }
             dfr = Get_DFR(DataForRecord.TypeEvent.drug,path);
@@ -245,16 +315,52 @@ public class API
             }
         return newitog;
     }
-    
-    static private File File_Exists(String path) throws IOException
+    static public Itog Calculate_Itog(Itog newitog,user myuser, List<BaseMessage> loglist) throws IOException, FileNotFoundException, ClassNotFoundException
     {
-        File f = new File(path);
-            if (!f.exists())
+            DataForRecord dfr;
+            newitog.day_otw = API.weektoString(newitog.date_open.getDay());
+            dfr = Get_DFR(DataForRecord.TypeEvent.open,loglist);
+            if(dfr!=null)
             {
-                f.createNewFile();
-                return null;
+                Itog_DFR(newitog,dfr);
+                ping p = Get_ping("open", loglist);
+                if(p != null)
+                {
+                    newitog.date_open = p.GetDate();
+                }
+                newitog.SS=Itog.StatusSession.open;
             }
-        return f;
+            dfr = Get_DFR(DataForRecord.TypeEvent.drug,loglist);
+            if(dfr!=null)
+            {
+                Itog_DFR(newitog,dfr);
+            }
+            dfr = Get_DFR(DataForRecord.TypeEvent.steal,loglist);
+            if(dfr!=null)
+            {
+                Itog_DFR(newitog,dfr);
+            }
+            dfr = Get_DFR(DataForRecord.TypeEvent.close,loglist);
+            if(dfr!=null)
+            {
+                Itog_DFR(newitog,dfr);
+                Itog_mulct(newitog,myuser);
+                newitog.date_close=dfr.GetDate();
+                newitog.salary = (double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +
+                        (newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60 * myuser.salary;
+                newitog.salary = new BigDecimal(newitog.salary).setScale(2, RoundingMode.UP).doubleValue();
+                newitog.SS=Itog.StatusSession.close;
+            }
+            DataCass[] dc = Get_summ_DC(loglist);
+                System.out.println("dc");
+            if(dc!=null)
+            {
+                for (DataCass dc1 : dc)
+                {
+                    newitog.add_DC(dc1);
+                }
+            }
+        return newitog;
     }
     
     static public List<BaseMessage> GetBM_List(String file) throws FileNotFoundException, IOException, ClassNotFoundException
@@ -276,7 +382,7 @@ public class API
             }
         return tempping;
     }
-    static private ping Get_ping(String message, List<BaseMessage> loglist)
+    static public ping Get_ping(String message, List<BaseMessage> loglist)
     {
         for (BaseMessage bm : loglist)
         {
@@ -291,6 +397,11 @@ public class API
     {
         DataCass tempdc[] = null;
         List<BaseMessage> loglist = GetBM_List(file);
+        return Get_summ_DC(loglist);
+    }
+    static public DataCass[] Get_summ_DC(List<BaseMessage> loglist) throws FileNotFoundException, IOException, ClassNotFoundException
+    {
+        DataCass tempdc[] = null;
                 if (loglist != null)
                 {
                     tempdc = Get_DC(loglist);
@@ -324,7 +435,7 @@ public class API
                 }
         return tempdc;
     }
-    static private DataCass Get_DC(DataCass.TypeEvent typeEvent,  List<BaseMessage> loglist) throws FileNotFoundException, IOException
+    static public DataCass Get_DC(DataCass.TypeEvent typeEvent,  List<BaseMessage> loglist) throws FileNotFoundException, IOException
     {
         for (BaseMessage bm : loglist)
         {
@@ -373,7 +484,7 @@ public class API
         }
         return dfr;
     }
-    static private DataForRecord Get_DFR(DataForRecord.TypeEvent typeEvent, List<BaseMessage> loglist)
+    static public DataForRecord Get_DFR(DataForRecord.TypeEvent typeEvent, List<BaseMessage> loglist)
     {
         for (BaseMessage bm : loglist)
         {
