@@ -1,6 +1,7 @@
 package api;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -21,10 +22,11 @@ import javax.mail.internet.MimeUtility;
 public class SendEmail
 {
 
+    static public String[] maillist;
     static String userName;
     static String password;
     static Properties properties = new Properties();
-    public static void SetProp(String uN, String pw)
+    static public void SetProp(String uN, String pw, String[] ml)
     {
         properties.put("mail.smtp.host", "smtp.gmail.com");
         properties.put("mail.smtp.port", "587");
@@ -34,6 +36,7 @@ public class SendEmail
         properties.put("mail.user", uN);
         password=pw;
         properties.put("mail.password", pw);
+        maillist = ml;
     }
 
     public static void sendPdf(

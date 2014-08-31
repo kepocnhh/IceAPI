@@ -26,13 +26,15 @@ public class API
     static public String logpath;
     static public String version;
     static public String toreg;
+    static public String StringsConfigFile;
     
-    static public void SetProp(String a,String l,String v,String t)
+    static public void SetProp(String a,String t,String l,String v,String scf)
     {
         accpath=a;
         logpath=l;
         version=v;
         toreg=t;
+        StringsConfigFile=scf;
     }
     
     static public user Messaging(login bm) throws IOException, ClassNotFoundException
