@@ -120,7 +120,7 @@ public class API
     {
         for (BaseMessage bm : loglist)
         {
-            if (((Itog) bm).user_email.equalsIgnoreCase(message))
+            if (bm.getClass() == Itog.class && ((Itog) bm).user_email.equalsIgnoreCase(message))
             {
                 return (Itog) bm;
             }
@@ -131,7 +131,7 @@ public class API
     {
         for (int i=0;i<loglist.size();i++)
         {
-            if (((Itog) loglist.get(i)).user_email.equalsIgnoreCase(itg.user_email))
+            if (loglist.get(i).getClass() == Itog.class && ((Itog) loglist.get(i)).user_email.equalsIgnoreCase(itg.user_email))
             {
                 loglist.set(i,(BaseMessage)itg);
                 return loglist;
