@@ -178,7 +178,7 @@ public class CreateXLS
             System.out.println("create_row");
         for(int i = 0; i < newitog.length; i++)
         {
-            create_row(newitog[i], API.Find_user(API.accpath, newitog[i].user_email), s.createRow(1));
+            //create_row(newitog[i], API.Find_user(API.accpath, newitog[i].user_email), s.createRow(1));//ВОТ ЗДЕСЬ ИСПРАВИТЬ!!!
         }
         FileOutputStream out = new FileOutputStream(name+".xls");
             wb.write(out);
