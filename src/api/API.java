@@ -4,11 +4,8 @@ import ice.BaseMessage;
 import ice.DataCass;
 import ice.DataForRecord;
 import ice.Itog;
-import ice.forget;
-import ice.login;
 import ice.ping;
 import ice.user;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -22,6 +19,17 @@ import java.util.List;
 
 public class API
 {
+    static public BaseMessage Get_BM(BaseMessage newbm, List<BaseMessage> loglist)
+    {
+        for (BaseMessage bm : loglist)
+        {
+            if (bm.equals(newbm))//is used
+            {
+                return bm;
+            }
+        }
+        return null;
+    }
     static public user Get_user(String email, List<BaseMessage> loglist) throws IOException, ClassNotFoundException
     {
         for (BaseMessage bm : loglist)
@@ -65,17 +73,6 @@ public class API
                 loglist.set(i,(BaseMessage)dfr);
                 return loglist;
             }
-        }
-        return null;
-    }
-    static public BaseMessage Get_BM(BaseMessage newbm, List<BaseMessage> loglist)
-    {
-        for (BaseMessage bm : loglist)
-        {
-                    if (bm.equals(newbm))//is used
-                    {
-                        return bm;
-                    }
         }
         return null;
     }
