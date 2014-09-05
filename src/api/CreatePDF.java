@@ -27,8 +27,6 @@ public class CreatePDF
     private static Document document;
     private static Font font;
     private static Font fonttitle;
-    private static String slasht = "    ";//"+slasht+"
-    private static String slashn = System.getProperty("line.separator");
     
     public static void SetProp(String fonts) throws DocumentException, IOException
     {
