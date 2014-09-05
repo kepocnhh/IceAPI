@@ -19,6 +19,25 @@ import java.util.List;
 
 public class API
 {
+    //Файл нужно перезаписывать новым листом/////////////////////////////////////////////
+    static public void AddMessage(List<BaseMessage> loglist, String path) throws IOException, FileNotFoundException, ClassNotFoundException
+    {
+            FileOutputStream fos = new FileOutputStream(path);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(loglist);
+            oos.close();
+            fos.close();
+    }
+    //BaseMessage/////////////////////////////////////////////////////////////////////////
+    static public List<BaseMessage> Get_BM_List(String file) throws FileNotFoundException, IOException, ClassNotFoundException
+    {
+        FileInputStream fis = new FileInputStream(file);
+        ObjectInputStream read = new ObjectInputStream(fis);
+                List<BaseMessage> loglist = (List) read.readObject();
+            fis.close();
+            read.close();
+        return loglist;
+    }
     static public BaseMessage Get_BM(BaseMessage newbm, List<BaseMessage> loglist)
     {
         for (BaseMessage bm : loglist)
@@ -30,6 +49,19 @@ public class API
         }
         return null;
     }
+    //ping/////////////////////////////////////////////////////////////////////////////////
+    static public ping Get_ping(String message, List<BaseMessage> loglist)
+    {
+        for (BaseMessage bm : loglist)
+        {
+            if (bm.getClass() == ping.class && ((ping) bm).GetPing().equals(message))
+            {
+                return (ping) bm;
+            }
+        }
+        return null;
+    }
+    //user/////////////////////////////////////////////////////////////////////////////////
     static public user Get_user(String email, List<BaseMessage> loglist) throws IOException, ClassNotFoundException
     {
         for (BaseMessage bm : loglist)
@@ -41,6 +73,7 @@ public class API
         }
         return null;
     }
+    //Itog/////////////////////////////////////////////////////////////////////////////////
     static public Itog Get_Itog(String message, List<BaseMessage> loglist)
     {
         for (BaseMessage bm : loglist)
@@ -52,18 +85,62 @@ public class API
         }
         return null;
     }
-    static public List<BaseMessage> Set_Itog(Itog itg, List<BaseMessage> loglist)
+    //DataCass/////////////////////////////////////////////////////////////////////////////
+    static public List<DataCass> Get_DC_List(List<BaseMessage> loglist) throws FileNotFoundException, IOException
     {
-        for (int i=0;i<loglist.size();i++)
+        List<DataCass> arraydfr = new ArrayList();
+        for (BaseMessage bm : loglist)
         {
-            if (loglist.get(i).getClass() == Itog.class && ((Itog) loglist.get(i)).user_email.equalsIgnoreCase(itg.user_email))
+            if (bm.getClass() == DataCass.class)
             {
-                loglist.set(i,(BaseMessage)itg);
-                return loglist;
+                arraydfr.add((DataCass) bm);
+            }
+        }
+        return arraydfr;
+    }
+    static public DataCass Get_DC(DataCass.TypeEvent typeEvent,  List<BaseMessage> loglist) throws FileNotFoundException, IOException
+    {
+        for (BaseMessage bm : loglist)
+        {
+            if (bm.getClass() == DataCass.class && ((DataCass) bm).getTypeEvent() == typeEvent)
+            {
+                return (DataCass) bm;
             }
         }
         return null;
     }
+    //DataForRecord///////////////////////////////////////////////////////////////////////
+    static public DataForRecord Get_DFR(DataForRecord.TypeEvent typeEvent, List<BaseMessage> loglist)
+    {
+        for (BaseMessage bm : loglist)
+        {
+            if (bm.getClass() == DataForRecord.class && ((DataForRecord) bm).getTypeEvent() == typeEvent)
+            {
+                return (DataForRecord) bm;
+            }
+        }
+        return null;
+    }
+    static public DataForRecord Get_DFR_summ(DataForRecord.TypeEvent typeEvent, List<BaseMessage> loglist)
+    {
+        DataForRecord dfr = null;
+        for (BaseMessage bm : loglist)
+        {
+            if (bm.getClass() == DataForRecord.class && ((DataForRecord) bm).getTypeEvent() == typeEvent)
+            {
+                if(dfr == null)
+                {
+                    dfr = (DataForRecord) bm;
+                }
+                else
+                {
+                    dfr.addData((DataForRecord) bm, true);
+                }
+            }
+        }
+        return dfr;
+    }
+    //DataForRecord///////////////////////////////////////////////////////////////////////
     static public List<BaseMessage> Set_DFR(DataForRecord dfr, List<BaseMessage> loglist)
     {
         for (int i=0;i<loglist.size();i++)
@@ -76,13 +153,66 @@ public class API
         }
         return null;
     }
-    static public void AddMessage(List<BaseMessage> loglist, String path) throws IOException, FileNotFoundException, ClassNotFoundException
+    //Itog/////////////////////////////////////////////////////////////////////////////////
+    static public List<BaseMessage> Set_Itog(Itog itg, List<BaseMessage> loglist)
     {
-            FileOutputStream fos = new FileOutputStream(path);
-            ObjectOutputStream oos = new ObjectOutputStream(fos); // Файл нужно перезаписывать новым листом
-                oos.writeObject(loglist);
-            oos.close();
-            fos.close();
+        for (int i=0;i<loglist.size();i++)
+        {
+            if (loglist.get(i).getClass() == Itog.class && ((Itog) loglist.get(i)).user_email.equalsIgnoreCase(itg.user_email))
+            {
+                loglist.set(i,(BaseMessage)itg);
+                return loglist;
+            }
+        }
+        return null;
+    }
+    //Calculate Itog////////////////////////////////////////////////////////////////////////
+    static public Itog Calculate_Itog(Itog newitog,user myuser, List<BaseMessage> loglist) throws IOException, FileNotFoundException, ClassNotFoundException
+    {
+            DataForRecord dfr;
+            newitog.day_otw = API.weektoString(newitog.date_open.getDay());
+            dfr = Get_DFR(DataForRecord.TypeEvent.open,loglist);
+            if(dfr!=null)
+            {
+                Itog_DFR(newitog,dfr);
+                ping p = Get_ping("open", loglist);
+                if(p != null)
+                {
+                    newitog.date_open = p.GetDate();
+                }
+                newitog.SS=Itog.StatusSession.open;
+            }
+            dfr = Get_DFR(DataForRecord.TypeEvent.drug,loglist);
+            if(dfr!=null)
+            {
+                Itog_DFR(newitog,dfr);
+            }
+            dfr = Get_DFR(DataForRecord.TypeEvent.steal,loglist);
+            if(dfr!=null)
+            {
+                Itog_DFR(newitog,dfr);
+            }
+            dfr = Get_DFR(DataForRecord.TypeEvent.close,loglist);
+            if(dfr!=null)
+            {
+                Itog_DFR(newitog,dfr);
+                Itog_mulct(newitog,myuser);
+                newitog.date_close=dfr.GetDate();
+                newitog.salary = (double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +
+                        (newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60 * myuser.salary;
+                newitog.salary = new BigDecimal(newitog.salary).setScale(2, RoundingMode.UP).doubleValue();
+                newitog.SS=Itog.StatusSession.close;
+            }
+            List<DataCass> dc = Get_DC_List(loglist);
+            System.out.println("dc");
+            if(dc!=null)
+            {
+                for (DataCass dc1 : dc)
+                {
+                    newitog.add_DC(dc1);
+                }
+            }
+        return newitog;
     }
     static private Itog Itog_DFR(Itog newitog,DataForRecord dfr)
     {
@@ -133,142 +263,7 @@ public class API
             }   
         return newitog;
     }
-    static public Itog Calculate_Itog(Itog newitog,user myuser, List<BaseMessage> loglist) throws IOException, FileNotFoundException, ClassNotFoundException
-    {
-            DataForRecord dfr;
-            newitog.day_otw = API.weektoString(newitog.date_open.getDay());
-            dfr = Get_DFR(DataForRecord.TypeEvent.open,loglist);
-            if(dfr!=null)
-            {
-                Itog_DFR(newitog,dfr);
-                ping p = Get_ping("open", loglist);
-                if(p != null)
-                {
-                    newitog.date_open = p.GetDate();
-                }
-                newitog.SS=Itog.StatusSession.open;
-            }
-            dfr = Get_DFR(DataForRecord.TypeEvent.drug,loglist);
-            if(dfr!=null)
-            {
-                Itog_DFR(newitog,dfr);
-            }
-            dfr = Get_DFR(DataForRecord.TypeEvent.steal,loglist);
-            if(dfr!=null)
-            {
-                Itog_DFR(newitog,dfr);
-            }
-            dfr = Get_DFR(DataForRecord.TypeEvent.close,loglist);
-            if(dfr!=null)
-            {
-                Itog_DFR(newitog,dfr);
-                Itog_mulct(newitog,myuser);
-                newitog.date_close=dfr.GetDate();
-                newitog.salary = (double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +
-                        (newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60 * myuser.salary;
-                newitog.salary = new BigDecimal(newitog.salary).setScale(2, RoundingMode.UP).doubleValue();
-                newitog.SS=Itog.StatusSession.close;
-            }
-            DataCass[] dc = Get_summ_DC(loglist);
-                System.out.println("dc");
-            if(dc!=null)
-            {
-                for (DataCass dc1 : dc)
-                {
-                    newitog.add_DC(dc1);
-                }
-            }
-        return newitog;
-    }
-    
-    static public List<BaseMessage> Get_BM_List(String file) throws FileNotFoundException, IOException, ClassNotFoundException
-    {
-        FileInputStream fis = new FileInputStream(file);
-        ObjectInputStream read = new ObjectInputStream(fis);
-                List<BaseMessage> loglist = (List) read.readObject();
-            fis.close();
-            read.close();
-        return loglist;
-    }
-    static public ping Get_ping(String message, List<BaseMessage> loglist)
-    {
-        for (BaseMessage bm : loglist)
-        {
-            if (bm.getClass() == ping.class && ((ping) bm).GetPing().equals(message))
-            {
-                return (ping) bm;
-            }
-        }
-        return null;
-    }
-    static public DataCass[] Get_summ_DC(List<BaseMessage> loglist) throws FileNotFoundException, IOException, ClassNotFoundException
-    {
-        DataCass tempdc[] = null;
-                if (loglist != null)
-                {
-                    tempdc = Get_DC(loglist);
-                }
-        return tempdc;
-    }
-    static private DataCass[] Get_DC(List<BaseMessage> loglist) throws FileNotFoundException, IOException
-    {
-        List<DataCass> arraydfr = new ArrayList();
-        for (BaseMessage bm : loglist)
-        {
-            if (bm.getClass() == DataCass.class)
-            {
-                arraydfr.add((DataCass) bm);
-            }
-        }
-        DataCass[] dc = new DataCass[arraydfr.size()];
-        for(int i=0;i<dc.length;i++)
-        {
-            dc[i]=arraydfr.get(i);
-        }
-        return dc;
-    }
-    static public DataCass Get_DC(DataCass.TypeEvent typeEvent,  List<BaseMessage> loglist) throws FileNotFoundException, IOException
-    {
-        for (BaseMessage bm : loglist)
-        {
-            if (bm.getClass() == DataCass.class && ((DataCass) bm).getTypeEvent() == typeEvent)
-            {
-                return (DataCass) bm;
-            }
-        }
-        return null;
-    }
-    static public DataForRecord Get_summ_DFR(DataForRecord.TypeEvent typeEvent, List<BaseMessage> loglist)
-    {
-        DataForRecord dfr = null;
-        for (BaseMessage bm : loglist)
-        {
-            if (bm.getClass() == DataForRecord.class && ((DataForRecord) bm).getTypeEvent() == typeEvent)
-            {
-                if(dfr == null)
-                {
-                    dfr = (DataForRecord) bm;
-                }
-                else
-                {
-                    dfr.addData((DataForRecord) bm, true);
-                }
-            }
-        }
-        return dfr;
-    }
-    static public DataForRecord Get_DFR(DataForRecord.TypeEvent typeEvent, List<BaseMessage> loglist)
-    {
-        for (BaseMessage bm : loglist)
-        {
-            if (bm.getClass() == DataForRecord.class && ((DataForRecord) bm).getTypeEvent() == typeEvent)
-            {
-                return (DataForRecord) bm;
-            }
-        }
-        return null;
-    }
-    
+    //Дни недели
     static public String weektoString(int w)
     {
         switch (w)
