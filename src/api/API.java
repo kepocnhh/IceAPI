@@ -29,7 +29,7 @@ public class API
             fos.close();
     }
     //BaseMessage/////////////////////////////////////////////////////////////////////////
-    static public List<BaseMessage> Get_BM_List(String file) throws FileNotFoundException, IOException, ClassNotFoundException
+    static public List<BaseMessage> Get_BM_List(String file) throws IOException, ClassNotFoundException
     {
         FileInputStream fis = new FileInputStream(file);
         ObjectInputStream read = new ObjectInputStream(fis);
@@ -62,7 +62,7 @@ public class API
         return null;
     }
     //user/////////////////////////////////////////////////////////////////////////////////
-    static public user Get_user(String email, List<BaseMessage> loglist) throws IOException, ClassNotFoundException
+    static public user Get_user(String email, List<BaseMessage> loglist)
     {
         for (BaseMessage bm : loglist)
         {
@@ -86,7 +86,7 @@ public class API
         return null;
     }
     //DataCass/////////////////////////////////////////////////////////////////////////////
-    static public List<DataCass> Get_DC_List(List<BaseMessage> loglist) throws FileNotFoundException, IOException
+    static public List<DataCass> Get_DC_List(List<BaseMessage> loglist)
     {
         List<DataCass> arraydfr = new ArrayList();
         for (BaseMessage bm : loglist)
@@ -98,7 +98,7 @@ public class API
         }
         return arraydfr;
     }
-    static public DataCass Get_DC(DataCass.TypeEvent typeEvent,  List<BaseMessage> loglist) throws FileNotFoundException, IOException
+    static public DataCass Get_DC(DataCass.TypeEvent typeEvent,  List<BaseMessage> loglist)
     {
         for (BaseMessage bm : loglist)
         {
@@ -167,7 +167,7 @@ public class API
         return null;
     }
     //Calculate Itog////////////////////////////////////////////////////////////////////////
-    static public Itog Calculate_Itog(Itog newitog,user myuser, List<BaseMessage> loglist) throws IOException, FileNotFoundException, ClassNotFoundException
+    static public Itog Calculate_Itog(Itog newitog,user myuser, List<BaseMessage> loglist)
     {
             DataForRecord dfr;
             newitog.day_otw = API.weektoString(newitog.date_open.getDay());
