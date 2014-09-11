@@ -167,44 +167,54 @@ public class API
         return null;
     }
     //Calculate Itog////////////////////////////////////////////////////////////////////////
-    static public Itog Calculate_Itog(Itog newitog,user myuser, List<BaseMessage> loglist)
+    static public Itog Calculate_Itog(user myuser, List<BaseMessage> loglist)
     {
-            DataForRecord dfr;
-            newitog.day_otw = API.weektoString(newitog.date_open.getDay());
+        Itog newitog = new Itog(myuser.GetMail());
+        DataForRecord dfr;
+        ping p = Get_ping("open", loglist);
+            if(p != null)
+            {
+                newitog.date_open = p.GetDate();
+            }
+            else
+            {
+                return newitog;
+            }
             dfr = Get_DFR(DataForRecord.TypeEvent.open,loglist);
             if(dfr!=null)
             {
-                Itog_DFR(newitog,dfr);
-                ping p = Get_ping("open", loglist);
-                if(p != null)
-                {
-                    newitog.date_open = p.GetDate();
-                }
+                    newitog.day_otw = API.weektoString(p.GetDate().getDay());
+                    newitog.nameshop = dfr.nameshop;
+                newitog.amountbag[0]=dfr.getsumm(0);
+                newitog.weightall[0]=dfr.getsumm(1);
+                newitog.amount_s = (int)(dfr.matrix[3][0]);
+                newitog.amount_k = (int)(dfr.getsumm(4));
+                newitog.amount_t = (int)(dfr.matrix[3][1]);
                 newitog.SS=Itog.StatusSession.open;
+            }
+            else
+            {
+                return newitog;
             }
             dfr = Get_DFR(DataForRecord.TypeEvent.drug,loglist);
             if(dfr!=null)
             {
-                Itog_DFR(newitog,dfr);
+                newitog.amountbag[1]=dfr.getsumm(0);
+                newitog.weightall[1]=dfr.getsumm(1);
+                newitog.amount_s += (int)(dfr.matrix[3][0]);
+                newitog.amount_k += (int)(dfr.getsumm(4));
+                newitog.amount_t += (int)(dfr.matrix[3][1]);
             }
-            dfr = Get_DFR(DataForRecord.TypeEvent.steal,loglist);
+            dfr = Get_DFR(DataForRecord.TypeEvent.drug,loglist);
             if(dfr!=null)
             {
-                Itog_DFR(newitog,dfr);
-            }
-            dfr = Get_DFR(DataForRecord.TypeEvent.close,loglist);
-            if(dfr!=null)
-            {
-                Itog_DFR(newitog,dfr);
-                Itog_mulct(newitog,myuser);
-                newitog.date_close=dfr.GetDate();
-                newitog.salary = (double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +
-                        (newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60 * myuser.salary;
-                newitog.salary = new BigDecimal(newitog.salary).setScale(2, RoundingMode.UP).doubleValue();
-                newitog.SS=Itog.StatusSession.close;
+                newitog.amountbag[2]=dfr.getsumm(0);
+                newitog.weightall[2]=dfr.getsumm(1);
+                newitog.amount_s -= (int)(dfr.matrix[3][0]);
+                newitog.amount_k -= (int)(dfr.getsumm(4));
+                newitog.amount_t -= (int)(dfr.matrix[3][1]);
             }
             List<DataCass> dc = Get_DC_List(loglist);
-            System.out.println("dc");
             if(dc!=null)
             {
                 for (DataCass dc1 : dc)
@@ -212,32 +222,21 @@ public class API
                     newitog.add_DC(dc1);
                 }
             }
-        return newitog;
-    }
-    static private Itog Itog_DFR(Itog newitog,DataForRecord dfr)
-    {
-        int i=0;
-        if(dfr.getTypeEvent()==DataForRecord.TypeEvent.open)
-        {
-            i=0;
-        }
-        if(dfr.getTypeEvent()==DataForRecord.TypeEvent.drug)
-        {
-            i=1;
-        }
-        if(dfr.getTypeEvent()==DataForRecord.TypeEvent.steal)
-        {
-            i=2;
-        }
-        if(dfr.getTypeEvent()==DataForRecord.TypeEvent.close)
-        {
-            i=3;
-        }
-            newitog.amountbag[i]=dfr.getsumm(0);
-            newitog.weightall[i]=dfr.getsumm(1);
-            newitog.amount_s += (int)(dfr.matrix[3][0])*((i/2)*(-2)+1);
-            newitog.amount_k += (int)(dfr.getsumm(4))*((i/2)*(-2)+1);
-            newitog.amount_t += (int)(dfr.matrix[3][1])*((i/2)*(-2)+1);
+            dfr = Get_DFR(DataForRecord.TypeEvent.close,loglist);
+            if(dfr!=null)
+            {
+                newitog.amountbag[3]=dfr.getsumm(0);
+                newitog.weightall[3]=dfr.getsumm(1);
+                newitog.amount_s -= (int)(dfr.matrix[3][0]);
+                newitog.amount_k -= (int)(dfr.getsumm(4));
+                newitog.amount_t -= (int)(dfr.matrix[3][1]);
+                newitog = Itog_mulct(newitog,myuser);
+                newitog.date_close=dfr.GetDate();
+                newitog.salary = (double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +
+                        (newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60 * myuser.salary;
+                newitog.salary = new BigDecimal(newitog.salary).setScale(2, RoundingMode.UP).doubleValue();
+                newitog.SS=Itog.StatusSession.close;
+            }
         return newitog;
     }
     static private Itog Itog_mulct(Itog newitog,user myuser)
