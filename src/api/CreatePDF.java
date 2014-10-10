@@ -51,11 +51,11 @@ public class CreatePDF
         PdfPCell cll;
         //title///////////////////////////////////////////
         cll = new PdfPCell(new Phrase("01"));
-        cll = create_title_table(dfropen.nameshop,(
+        cll = create_title_table(newitog.nameshop,(
                                         strlist.PDFheader.get(0)+"\n"+
                                         newuser.GetSurname() + " " + newuser.GetName() + " " + newuser.GetPatronymic()+"\n"+
                                         "Точка"+"\n"+
-                                        dfropen.nameshop
+                                        newitog.nameshop
                                         ).split("\n"),
                                         cll, BW, wtm);
         nestedTable.addCell(cll);//01///////////////////////////////////////////
@@ -333,11 +333,11 @@ public class CreatePDF
         PdfPCell cll;
         //title///////////////////////////////////////////
         cll = new PdfPCell(new Phrase("01"));
-        cll = create_title_table(dfropen.nameshop,(
+        cll = create_title_table(newitog.nameshop,(
                                         strlist.PDFheader.get(0)+"\n"+
                                         newuser.GetSurname() + " " + newuser.GetName() + " " + newuser.GetPatronymic()+"\n"+
                                         "Точка"+"\n"+
-                                        dfropen.nameshop
+                                        newitog.nameshop
                                         ).split("\n"),
                                         cll, BW, wtm);
         nestedTable.addCell(cll);//01///////////////////////////////////////////

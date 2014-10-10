@@ -19,6 +19,32 @@ import java.util.List;
 
 public class API
 {
+    //String/////////////////////////////////////////////////////////////////////////
+    static public List<String> Get_String_List(String file) throws IOException, ClassNotFoundException
+    {
+        List<String> loglist = null;
+            try
+            {
+                FileInputStream fis = new FileInputStream(file);
+                    ObjectInputStream read = new ObjectInputStream(fis);
+                            loglist = (List) read.readObject();
+                    read.close();
+                fis.close();
+            }
+            catch (IOException ex)
+            {
+            }
+        return loglist;
+    }
+    //Файл нужно перезаписывать новым листом/////////////////////////////////////////////
+    static public void Add_String_List(List<String> loglist, String path) throws IOException, FileNotFoundException, ClassNotFoundException
+    {
+            FileOutputStream fos = new FileOutputStream(path);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+                oos.writeObject(loglist);
+            oos.close();
+            fos.close();
+    }
     //Файл нужно перезаписывать новым листом/////////////////////////////////////////////
     static public void AddMessage(List<BaseMessage> loglist, String path) throws IOException, FileNotFoundException, ClassNotFoundException
     {
@@ -31,11 +57,18 @@ public class API
     //BaseMessage/////////////////////////////////////////////////////////////////////////
     static public List<BaseMessage> Get_BM_List(String file) throws IOException, ClassNotFoundException
     {
-        FileInputStream fis = new FileInputStream(file);
-        ObjectInputStream read = new ObjectInputStream(fis);
-                List<BaseMessage> loglist = (List) read.readObject();
-            fis.close();
-            read.close();
+        List<BaseMessage> loglist = null;
+            try
+            {
+                FileInputStream fis = new FileInputStream(file);
+                    ObjectInputStream read = new ObjectInputStream(fis);
+                            loglist = (List) read.readObject();
+                    read.close();
+                fis.close();
+            }
+            catch (IOException ex)
+            {
+            }
         return loglist;
     }
     static public BaseMessage Get_BM(BaseMessage newbm, List<BaseMessage> loglist)
@@ -62,13 +95,15 @@ public class API
         return null;
     }
     //user/////////////////////////////////////////////////////////////////////////////////
-    static public user Get_user(String email, List<BaseMessage> loglist)
+    static public user Get_user(String email, List<String> accounts)
     {
-        for (BaseMessage bm : loglist)
+        user tmp;
+        for (String string : accounts)
         {
-            if (bm.getClass() == user.class && ((user) bm).GetMail().equalsIgnoreCase(email))
+            tmp = new user(string);
+            if (tmp.GetMail().equalsIgnoreCase(email))    //mail is used
             {
-                return (user) bm;
+                return tmp;
             }
         }
         return null;
@@ -167,29 +202,23 @@ public class API
         return null;
     }
     //Calculate Itog////////////////////////////////////////////////////////////////////////
-    static public Itog Calculate_Itog(user myuser, List<BaseMessage> loglist)
+    static public Itog Calculate_Itog(Itog newitog,user myuser, List<BaseMessage> loglist)
     {
-        Itog newitog = new Itog(myuser.GetMail());
-        DataForRecord dfr;
-        ping p = Get_ping("open", loglist);
+            ping p = Get_ping("open", loglist);
             if(p != null)
             {
                 newitog.date_open = p.GetDate();
+                newitog.day_otw = API.weektoString(newitog.date_open.getDay());
             }
             else
             {
                 return newitog;
             }
+            DataForRecord dfr;
             dfr = Get_DFR(DataForRecord.TypeEvent.open,loglist);
             if(dfr!=null)
             {
-                    newitog.day_otw = API.weektoString(p.GetDate().getDay());
-                    newitog.nameshop = dfr.nameshop;
-                newitog.amountbag[0]=dfr.getsumm(0);
-                newitog.weightall[0]=dfr.getsumm(1);
-                newitog.amount_s = (int)(dfr.matrix[3][0]);
-                newitog.amount_k = (int)(dfr.getsumm(4));
-                newitog.amount_t = (int)(dfr.matrix[3][1]);
+                Itog_DFR(newitog,dfr);
                 newitog.SS=Itog.StatusSession.open;
             }
             else
@@ -199,20 +228,24 @@ public class API
             dfr = Get_DFR(DataForRecord.TypeEvent.drug,loglist);
             if(dfr!=null)
             {
-                newitog.amountbag[1]=dfr.getsumm(0);
-                newitog.weightall[1]=dfr.getsumm(1);
-                newitog.amount_s += (int)(dfr.matrix[3][0]);
-                newitog.amount_k += (int)(dfr.getsumm(4));
-                newitog.amount_t += (int)(dfr.matrix[3][1]);
+                Itog_DFR(newitog,dfr);
             }
-            dfr = Get_DFR(DataForRecord.TypeEvent.drug,loglist);
+            dfr = Get_DFR(DataForRecord.TypeEvent.steal,loglist);
             if(dfr!=null)
             {
-                newitog.amountbag[2]=dfr.getsumm(0);
-                newitog.weightall[2]=dfr.getsumm(1);
-                newitog.amount_s -= (int)(dfr.matrix[3][0]);
-                newitog.amount_k -= (int)(dfr.getsumm(4));
-                newitog.amount_t -= (int)(dfr.matrix[3][1]);
+                Itog_DFR(newitog,dfr);
+            }
+            dfr = Get_DFR(DataForRecord.TypeEvent.close,loglist);
+            if(dfr!=null)
+            {
+                Itog_DFR(newitog,dfr);
+                Itog_mulct(newitog,myuser);
+                newitog.date_close=dfr.GetDate();
+                newitog.salary = (double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +
+                        (newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60 * myuser.salary;
+                newitog.salary = new BigDecimal(newitog.salary).setScale(2, RoundingMode.UP).doubleValue();
+                newitog.bonus = (double)newitog.amount_k*myuser.bonus;
+                newitog.SS=Itog.StatusSession.close;
             }
             List<DataCass> dc = Get_DC_List(loglist);
             if(dc!=null)
@@ -222,21 +255,32 @@ public class API
                     newitog.add_DC(dc1);
                 }
             }
-            dfr = Get_DFR(DataForRecord.TypeEvent.close,loglist);
-            if(dfr!=null)
-            {
-                newitog.amountbag[3]=dfr.getsumm(0);
-                newitog.weightall[3]=dfr.getsumm(1);
-                newitog.amount_s -= (int)(dfr.matrix[3][0]);
-                newitog.amount_k -= (int)(dfr.getsumm(4));
-                newitog.amount_t -= (int)(dfr.matrix[3][1]);
-                newitog = Itog_mulct(newitog,myuser);
-                newitog.date_close=dfr.GetDate();
-                newitog.salary = (double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +
-                        (newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60 * myuser.salary;
-                newitog.salary = new BigDecimal(newitog.salary).setScale(2, RoundingMode.UP).doubleValue();
-                newitog.SS=Itog.StatusSession.close;
-            }
+        return newitog;
+    }
+    static private Itog Itog_DFR(Itog newitog,DataForRecord dfr)
+    {
+        int i=0;
+        if(dfr.getTypeEvent()==DataForRecord.TypeEvent.open)
+        {
+            i=0;
+        }
+        if(dfr.getTypeEvent()==DataForRecord.TypeEvent.drug)
+        {
+            i=1;
+        }
+        if(dfr.getTypeEvent()==DataForRecord.TypeEvent.steal)
+        {
+            i=2;
+        }
+        if(dfr.getTypeEvent()==DataForRecord.TypeEvent.close)
+        {
+            i=3;
+        }
+            newitog.amountbag[i]=dfr.getsumm(0);
+            newitog.weightall[i]=dfr.getsumm(1);
+            newitog.amount_s += (int)(dfr.matrix[3][0])*((i/2)*(-2)+1);
+            newitog.amount_k += (int)(dfr.getsumm(4))*((i/2)*(-2)+1);
+            newitog.amount_t += (int)(dfr.matrix[3][1])*((i/2)*(-2)+1);
         return newitog;
     }
     static private Itog Itog_mulct(Itog newitog,user myuser)

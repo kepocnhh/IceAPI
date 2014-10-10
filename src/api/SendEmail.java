@@ -58,7 +58,7 @@ public class SendEmail
             Multipart multipart = new MimeMultipart();
             MimeBodyPart PdfBP = new MimeBodyPart();
             PdfBP.setDataHandler(new DataHandler(new FileDataSource(Pdfpath + ".pdf")));
-            PdfBP.setFileName(MimeUtility.encodeText( new String( (Pdfpath + ".pdf").getBytes( "utf-8" ) ), "Cp1251", "B" ) );
+            PdfBP.setFileName(MimeUtility.encodeText( new String( (subject + ".pdf").getBytes( "utf-8" ) ), "Cp1251", "B" ) );
             MimeBodyPart TextBP = new MimeBodyPart();
             TextBP.setText(content);
             multipart.addBodyPart(PdfBP);
