@@ -204,16 +204,6 @@ public class API
     //Calculate Itog////////////////////////////////////////////////////////////////////////
     static public Itog Calculate_Itog(Itog newitog,user myuser, List<BaseMessage> loglist)
     {
-            ping p = Get_ping("open", loglist);
-            if(p != null)
-            {
-                newitog.date_open = p.GetDate();
-                newitog.day_otw = API.weektoString(newitog.date_open.getDay());
-            }
-            else
-            {
-                return newitog;
-            }
             DataForRecord dfr;
             dfr = Get_DFR(DataForRecord.TypeEvent.open,loglist);
             if(dfr!=null)
