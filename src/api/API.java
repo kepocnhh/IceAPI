@@ -206,6 +206,9 @@ public class API
     {
             DataForRecord dfr;
             dfr = Get_DFR(DataForRecord.TypeEvent.open,loglist);
+            newitog.amount_s = 0;
+            newitog.amount_k = 0;
+            newitog.amount_t = 0;
             if(dfr!=null)
             {
                 Itog_DFR(newitog,dfr);
