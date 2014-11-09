@@ -306,9 +306,9 @@ public class CreatePDF
                                         ).split("\t") , font, Element.ALIGN_LEFT,
                                         1, wts));
         cll.addElement(create_table( ("Итого"+"\t"+
-                                        (newitog.salary +
+                                        API.my_round((newitog.salary +
                                         ((double)newitog.amount_k*newuser.price_k / 100) * newuser.bonus -
-                                        newitog.get_summ_mulct())/1
+                                        newitog.get_summ_mulct()),2)
                                         ).split("\t") , font, Element.ALIGN_LEFT,
                                         1, wts));
         cll.setBorderWidth(BW);
