@@ -6,6 +6,8 @@ import ice.user;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -18,6 +20,65 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 public class CreateXLS
 {
+    static private String date_to_rus_string(Date d)
+    {
+        String str= "";
+            str+=d.getDate();
+            str+=" ";
+        if(d.getMonth()==0)
+        {
+            str+="Января";
+        }
+        else if(d.getMonth()==1)
+        {
+            str+="Февраля";
+        }
+        else if(d.getMonth()==2)
+        {
+            str+="Марта";
+        }
+        else if(d.getMonth()==3)
+        {
+            str+="Апреля";
+        }
+        else if(d.getMonth()==4)
+        {
+            str+="Мая";
+        }
+        else if(d.getMonth()==5)
+        {
+            str+="Июня";
+        }
+        else if(d.getMonth()==6)
+        {
+            str+="Июля";
+        }
+        else if(d.getMonth()==7)
+        {
+            str+="Августа";
+        }
+        else if(d.getMonth()==8)
+        {
+            str+="Сентября";
+        }
+        else if(d.getMonth()==9)
+        {
+            str+="Октября";
+        }
+        else if(d.getMonth()==10)
+        {
+            str+="Ноября";
+        }
+        else if(d.getMonth()==11)
+        {
+            str+="Декабря";
+        }
+            str+=" ";
+            str+=(d.getYear()+1900);
+            str+=" ";
+            str+="года";
+        return str;
+    }
     static private Row create_row(Itog newitog, user newuser,Row r)
     {
         Cell c;
@@ -56,20 +117,20 @@ public class CreateXLS
             System.out.println("newitog.get_mulct().length "+newitog.get_mulct().length);
         for(int i=0;i<newitog.get_mulct().length;i++)
         {
-            mulct+=" "+newitog.get_mulct()[i];
+            mulct+="["+newitog.get_mulct()[i]+"] ";
         }
             System.out.println("get_mulct");
         mulct+="\t";
         for(int i=0;i<newitog.get_mulct().length;i++)
         {
-            mulct+=" "+newitog.get_mulct_str()[i];
+            mulct+="["+newitog.get_mulct_str()[i]+"] ";
         }
             System.out.println("get_mulct_str");
             String str = "";
-            str +=newitog.date_open+"\t";
-            str +=newitog.amount_k+"\t";
-            str +=newuser.price_k+"\t";
-               str += (newitog.amount_k*newuser.price_k)+"\t";
+            str +=date_to_rus_string(newitog.date_open)+"\t";//дата
+            str +=newitog.amount_k+"\t";//количество проданных кепок
+            str +=newuser.price_k+"\t";//цена кепок
+               str += (newitog.amount_k*newuser.price_k)+"\t";//выручка за кепки
                 str +=newitog.amount_s+"\t";
                 str +=newuser.price_s+"\t";
                 str +=(newitog.amount_s*newuser.price_s)+"\t";
@@ -80,15 +141,15 @@ public class CreateXLS
                 str +=((newitog.amount_k*newuser.price_k)+(newitog.amount_s*newuser.price_s)+(newitog.amount_t*newuser.price_t))+"\t";
                 str +=newuser.GetSurname()+"\t";
                 System.out.println("Surname = "+newuser.GetSurname());
-                str +=newuser.bonus+"\t";
-                str +=(newitog.amount_k*newuser.bonus)+"\t";
+                str +=newuser.bonus+"%"+"\t";
+                str +=((newitog.amount_k*newuser.price_k)/100*newuser.bonus)+"\t";
                 str +=newuser.weight_k+"\t";
                 str +=(newitog.amount_k*newuser.weight_k)+"\t";
                 str +=newuser.weight_s+"\t";
                 str +=(newitog.amount_s*newuser.weight_s)+"\t";
                 str +=newuser.weight_t+"\t";
                 str +=(newitog.amount_t*newuser.weight_t)+"\t";
-                str +=((newitog.amount_k*newuser.weight_k)+(newitog.amount_s*newuser.weight_s)+(newitog.amount_t*newuser.weight_t))+"\t";
+                str +=((newitog.amount_k*newuser.weight_k)+(newitog.amount_s*newuser.weight_s)+(newitog.amount_t*newuser.weight_t))+"\t";//итого вес
             System.out.println("amount");
             String s;
             s = ""+newitog.date_open.getMinutes();
@@ -104,20 +165,23 @@ public class CreateXLS
         }
                 str +=newitog.date_close.getHours() + ":" + s+"\t";
             System.out.println("Hours");
-                str +=(double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +(newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60+"\t";
+                str += API.my_round((double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +(newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60, 2)+"\t";
                 str +=newuser.salary+"\t";
                 str +=newitog.salary+"\t";
-                str +=(newitog.salary+newitog.amount_k*newuser.bonus)+"\t";
+                str += API.my_round((newitog.salary +
+                                        ((double)newitog.amount_k*newuser.price_k / 100) * newuser.bonus),2)+"\t";//итого зп
             System.out.println("dc");
                 str +=ink+"\t";
                 str +=pre+"\t";
                 str +=pro+"\t";
                 str +=mulct+"\t";
                 str +=newitog.day_otw+"\t";
-                str +=((newitog.salary+newitog.amount_k*newuser.bonus)-newitog.get_summ_mulct());
+                str += API.my_round((newitog.salary +
+                                        ((double)newitog.amount_k*newuser.price_k / 100) * newuser.bonus -
+                                        newitog.get_summ_mulct()),2)+"\t";//на руки
         String[] cell=(str).split("\t");
             System.out.println("split");
-            r.setHeightInPoints(111);
+            //r.setHeightInPoints(111);
         for (int i = 0; i < cell.length; i++)
         {
             c = r.createCell(i);
@@ -204,7 +268,7 @@ public class CreateXLS
                 System.out.println("user null\n"+newitog[i].user_email);
                 continue;
             }
-            create_row(newitog[i], newuser, s.createRow(1));
+            create_row(newitog[i], newuser, s.createRow(i+1));
         }
         FileOutputStream out = new FileOutputStream(name+".xls");
             wb.write(out);

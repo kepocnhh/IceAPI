@@ -19,6 +19,10 @@ import java.util.List;
 
 public class API
 {
+    static public double my_round(double d, int n)
+    {
+        return new BigDecimal(d).setScale(n, RoundingMode.UP).doubleValue();
+    }
     //String/////////////////////////////////////////////////////////////////////////
     static public List<String> Get_String_List(String file) throws IOException, ClassNotFoundException
     {
@@ -236,7 +240,7 @@ public class API
                 newitog.date_close=dfr.GetDate();
                 newitog.salary = (double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +
                         (newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60 * myuser.salary;
-                newitog.salary = new BigDecimal(newitog.salary).setScale(2, RoundingMode.UP).doubleValue();
+                newitog.salary = my_round(newitog.salary,2);
                 newitog.bonus = (double)newitog.amount_k*myuser.bonus;
                 newitog.SS=Itog.StatusSession.close;
             }
