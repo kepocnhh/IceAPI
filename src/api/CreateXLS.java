@@ -79,7 +79,7 @@ public class CreateXLS
             str+="года";
         return str;
     }
-    static private Row create_row(Itog newitog, user newuser,Row r)
+    static private Row create_row(Itog newitog, user newuser, Row r)
     {
         Cell c;
         String ink = "";
@@ -114,18 +114,16 @@ public class CreateXLS
                 pre+=" "+newitog.get_DC()[i].getFam();
             }
         }
-            System.out.println("newitog.get_mulct().length "+newitog.get_mulct().length);
+            //System.out.println("newitog.get_mulct().length "+newitog.get_mulct().length);
         for(int i=0;i<newitog.get_mulct().length;i++)
         {
-            mulct+="["+newitog.get_mulct()[i]+"] ";
+            mulct+="["+API.my_round(newitog.get_mulct()[i],2)+"] ";
         }
-            System.out.println("get_mulct");
         mulct+="\t";
         for(int i=0;i<newitog.get_mulct().length;i++)
         {
             mulct+="["+newitog.get_mulct_str()[i]+"] ";
         }
-            System.out.println("get_mulct_str");
             String str = "";
             str +=date_to_rus_string(newitog.date_open)+"\t";//дата
             str +=newitog.amount_k+"\t";//количество проданных кепок
@@ -136,11 +134,9 @@ public class CreateXLS
                 str +=(newitog.amount_s*newuser.price_s)+"\t";
                 str +=newitog.amount_t+"\t";
                 str +=newuser.price_t+"\t";
-                System.out.println("price");
                 str +=(newitog.amount_t*newuser.price_t)+"\t";
                 str +=((newitog.amount_k*newuser.price_k)+(newitog.amount_s*newuser.price_s)+(newitog.amount_t*newuser.price_t))+"\t";
                 str +=newuser.GetSurname()+"\t";
-                System.out.println("Surname = "+newuser.GetSurname());
                 str +=newuser.bonus+"%"+"\t";
                 str +=((newitog.amount_k*newuser.price_k)/100*newuser.bonus)+"\t";
                 str +=newuser.weight_k+"\t";
@@ -150,7 +146,6 @@ public class CreateXLS
                 str +=newuser.weight_t+"\t";
                 str +=(newitog.amount_t*newuser.weight_t)+"\t";
                 str +=((newitog.amount_k*newuser.weight_k)+(newitog.amount_s*newuser.weight_s)+(newitog.amount_t*newuser.weight_t))+"\t";//итого вес
-            System.out.println("amount");
             String s;
             s = ""+newitog.date_open.getMinutes();
         if (s.length() == 1)
@@ -164,13 +159,11 @@ public class CreateXLS
             s = "0" + s;
         }
                 str +=newitog.date_close.getHours() + ":" + s+"\t";
-            System.out.println("Hours");
                 str += API.my_round((double)((newitog.date_close.getHours()-newitog.date_open.getHours()) * 60 +(newitog.date_close.getMinutes()-newitog.date_open.getMinutes())) / 60, 2)+"\t";
                 str +=newuser.salary+"\t";
                 str +=newitog.salary+"\t";
                 str += API.my_round((newitog.salary +
                                         ((double)newitog.amount_k*newuser.price_k / 100) * newuser.bonus),2)+"\t";//итого зп
-            System.out.println("dc");
                 str +=ink+"\t";
                 str +=pre+"\t";
                 str +=pro+"\t";
@@ -180,8 +173,6 @@ public class CreateXLS
                                         ((double)newitog.amount_k*newuser.price_k / 100) * newuser.bonus -
                                         newitog.get_summ_mulct()),2)+"\t";//на руки
         String[] cell=(str).split("\t");
-            System.out.println("split");
-            //r.setHeightInPoints(111);
         for (int i = 0; i < cell.length; i++)
         {
             c = r.createCell(i);
@@ -201,8 +192,10 @@ public class CreateXLS
         Font f = wb.createFont();
         f.setFontHeightInPoints((short) 12);
         f.setColor(Short.MIN_VALUE);
-        cs.setFont(f);
-        cs.setDataFormat(wb.createDataFormat().getFormat("#,##0.0"));
+//        cs.setFont(f);
+//        cs.setDataFormat(wb.createDataFormat().getFormat("#,##0.0"));
+//                cs.setTopBorderColor((short)0);
+//                cs.setBorderTop((short)2);
         wb.setSheetName(0, "ICENGO" );
         //title/////////////////////////////////////////////////////////////
         r = s.createRow(0);
@@ -250,8 +243,7 @@ public class CreateXLS
             c = r.createCell(i);
             c.setCellValue(cell[i]);
         }
-            System.out.println("create_row");
-                System.out.println("\n"+newitog[0].user_email);
+                int day = 0;
         for(int i = 0; i < newitog.length; i++)
         {
                     user newuser = null;
@@ -268,7 +260,9 @@ public class CreateXLS
                 System.out.println("user null\n"+newitog[i].user_email);
                 continue;
             }
-            create_row(newitog[i], newuser, s.createRow(i+1));
+                System.out.println("--> "+day);
+            Row row = s.createRow(i+1);
+            create_row(newitog[i], newuser, row);
         }
         FileOutputStream out = new FileOutputStream(name+".xls");
             wb.write(out);
