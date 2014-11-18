@@ -14,6 +14,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -79,7 +80,7 @@ public class CreateXLS
             str+="года";
         return str;
     }
-    static private Row create_row(Itog newitog, user newuser, Row r)
+    static private Row create_row(Itog newitog, user newuser, Row r,CellStyle cs)
     {
         Cell c;
         String ink = "";
@@ -173,18 +174,10 @@ public class CreateXLS
                                         ((double)newitog.amount_k*newuser.price_k / 100) * newuser.bonus -
                                         newitog.get_summ_mulct()),2)+"\t";//на руки
         String[] cell=(str).split("\t");
-        CellStyle cs = r.getSheet().getWorkbook().createCellStyle();
-        Font f = r.getSheet().getWorkbook().createFont();
-        f.setFontHeightInPoints((short) 12);
-        f.setColor(Short.MIN_VALUE);
-        cs.setFont(f);
         for (int i = 0; i < cell.length; i++)
         {
             c = r.createCell(i);
             c.setCellValue(cell[i]);
-        f.setFontHeightInPoints((short) i);
-        f.setColor(Short.MIN_VALUE);
-        cs.setFont(f);
             c.setCellStyle(cs);
         }
         return r;
@@ -197,14 +190,6 @@ public class CreateXLS
         Row r = null;
         Cell c = null;
         String[] cell;
-        CellStyle cs = wb.createCellStyle();
-        Font f = wb.createFont();
-        f.setFontHeightInPoints((short) 12);
-        f.setColor(Short.MIN_VALUE);
-//        cs.setFont(f);
-//        cs.setDataFormat(wb.createDataFormat().getFormat("#,##0.0"));
-//                cs.setTopBorderColor((short)0);
-//                cs.setBorderTop((short)2);
         wb.setSheetName(0, "ICENGO" );
         //title/////////////////////////////////////////////////////////////
         r = s.createRow(0);
@@ -271,7 +256,14 @@ public class CreateXLS
             }
                 //System.out.println("--> "+day);
             Row row = s.createRow(i+1);
-            create_row(newitog[i], newuser, row);
+            CellStyle cs = wb.createCellStyle();
+            if(day!=newitog[i].date_close.getDate())
+            {
+                cs.setTopBorderColor(IndexedColors.BLUE.getIndex());
+                cs.setBorderTop(CellStyle.BORDER_MEDIUM);
+            }
+            day = newitog[i].date_close.getDate();
+            create_row(newitog[i], newuser, row, cs);
         }
         FileOutputStream out = new FileOutputStream(name+".xls");
             wb.write(out);
