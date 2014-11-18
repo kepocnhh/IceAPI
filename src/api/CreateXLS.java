@@ -90,15 +90,15 @@ public class CreateXLS
         {
             if(newitog.get_DC()[i].getTypeEvent()==DataCass.TypeEvent.inkasator)
             {
-                ink+=" "+newitog.get_DC()[i].getCash();
+                ink+=" ["+newitog.get_DC()[i].getCash() + "]";
             }
             if(newitog.get_DC()[i].getTypeEvent()==DataCass.TypeEvent.cass)
             {
-                pre+=" "+newitog.get_DC()[i].getCash();
+                pre+=" ["+newitog.get_DC()[i].getCash() + "]";
             }
             if(newitog.get_DC()[i].getTypeEvent()==DataCass.TypeEvent.promoter)
             {
-                pro+=" "+newitog.get_DC()[i].getCash();
+                pro+=" ["+newitog.get_DC()[i].getCash() + "]";
             }
         }
         ink+="\t";
@@ -107,11 +107,11 @@ public class CreateXLS
         {
             if(newitog.get_DC()[i].getTypeEvent()==DataCass.TypeEvent.inkasator)
             {
-                ink+=" "+newitog.get_DC()[i].getFam();
+                ink+=" ["+newitog.get_DC()[i].getFam() + "]";
             }
             if(newitog.get_DC()[i].getTypeEvent()==DataCass.TypeEvent.cass)
             {
-                pre+=" "+newitog.get_DC()[i].getFam();
+                pre+=" ["+newitog.get_DC()[i].getFam() + "]";
             }
         }
             //System.out.println("newitog.get_mulct().length "+newitog.get_mulct().length);
@@ -173,10 +173,19 @@ public class CreateXLS
                                         ((double)newitog.amount_k*newuser.price_k / 100) * newuser.bonus -
                                         newitog.get_summ_mulct()),2)+"\t";//на руки
         String[] cell=(str).split("\t");
+        CellStyle cs = r.getSheet().getWorkbook().createCellStyle();
+        Font f = r.getSheet().getWorkbook().createFont();
+        f.setFontHeightInPoints((short) 12);
+        f.setColor(Short.MIN_VALUE);
+        cs.setFont(f);
         for (int i = 0; i < cell.length; i++)
         {
             c = r.createCell(i);
             c.setCellValue(cell[i]);
+        f.setFontHeightInPoints((short) i);
+        f.setColor(Short.MIN_VALUE);
+        cs.setFont(f);
+            c.setCellStyle(cs);
         }
         return r;
     }
@@ -260,12 +269,32 @@ public class CreateXLS
                 System.out.println("user null\n"+newitog[i].user_email);
                 continue;
             }
-                System.out.println("--> "+day);
+                //System.out.println("--> "+day);
             Row row = s.createRow(i+1);
             create_row(newitog[i], newuser, row);
         }
         FileOutputStream out = new FileOutputStream(name+".xls");
             wb.write(out);
             out.close();
+    }
+    static public void _CreateXLS_graphics(List<Itog> il,String name,List<user> ul)
+    {
+        Workbook wb = new HSSFWorkbook();
+        Sheet s = wb.createSheet();
+        Row r = null;
+        Cell c = null;
+        String[] cell;
+        cell =(
+                "Красные"+"\t" +
+                "Синие"
+                ).split("\t");
+        wb.setSheetName(0, "ICENGO" );
+        //title/////////////////////////////////////////////////////////////
+        r = s.createRow(0);
+        for (int i = 0; i < cell.length; i++)
+        {
+            c = r.createCell(i);
+            c.setCellValue(cell[i]);
+        }
     }
 }
