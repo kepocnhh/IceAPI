@@ -21,15 +21,150 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 public class CreateXLS
 {
-    static public void SetProp(String[] cells)
+    static private CellStyle[] line_cs;
+    static private CellStyle[] new_day_cs;
+    static private CellStyle month_cs;
+    static private CellStyle ttl_cs;
+    static public void SetProp(Workbook wb)
     {
-        line_cs = new CellStyle[cells.length];
-        for(int i=0; i<cells.length;i++)
+        new_day_cs = new CellStyle[line_cs.length];
+        for(int i=0; i<new_day_cs.length;i++)
         {
-            
+            new_day_cs[i] = wb.createCellStyle();
+            new_day_cs[i].cloneStyleFrom(line_cs[i]);
+            //new_day_cs[i].setBottomBorderColor(IndexedColors.LIGHT_BLUE.getIndex());
+            //new_day_cs[i].setBorderBottom(CellStyle.BORDER_MEDIUM);
+            //new_day_cs[i].setBorderBottom(CellStyle.BORDER_DOUBLE);
+            new_day_cs[i].setBorderTop(CellStyle.BORDER_MEDIUM);
         }
     }
-    static private CellStyle[] line_cs;
+    static public CellStyle SetProp(CellStyle cs, Font f, short col)
+    {
+                cs.setLeftBorderColor(col);
+                cs.setBottomBorderColor(col);
+                cs.setTopBorderColor(col);
+                cs.setBorderLeft(CellStyle.BORDER_THIN);
+                cs.setBorderBottom(CellStyle.BORDER_THIN);
+                cs.setBorderTop(CellStyle.BORDER_THIN);
+                cs.setFont(f);
+                return cs;
+    }
+    static public void SetProp(String[] cells, CellStyle new_cs, Font f, Workbook wb)
+    {
+        line_cs = new CellStyle[cells.length];
+        //
+            ttl_cs = wb.createCellStyle();
+            ttl_cs.cloneStyleFrom(new_cs);
+            ttl_cs = cell_borders_back(ttl_cs, IndexedColors.BLACK.getIndex(), IndexedColors.GOLD.getIndex(), CellStyle.BORDER_THIN);
+        //
+            month_cs = wb.createCellStyle();
+            month_cs.cloneStyleFrom(new_cs);
+            Font f_m = wb.createFont();
+            f_m.setColor(IndexedColors.WHITE.getIndex());
+            f_m.setFontHeight((short)333);
+            month_cs.setFont(f_m);
+            month_cs.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+            month_cs.setFillBackgroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+            month_cs.setFillPattern(CellStyle.SOLID_FOREGROUND);
+                month_cs.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+                month_cs.setTopBorderColor(IndexedColors.BLACK.getIndex());
+                month_cs.setLeftBorderColor(IndexedColors.LIGHT_BLUE.getIndex());
+                month_cs.setRightBorderColor(IndexedColors.LIGHT_BLUE.getIndex());
+                    month_cs.setBorderBottom(CellStyle.BORDER_THIN);
+                    month_cs.setBorderTop(CellStyle.BORDER_MEDIUM);
+                    //month_cs.setBorderTop(CellStyle.BORDER_THIN);
+                    month_cs.setBorderLeft(CellStyle.BORDER_NONE);
+                    //month_cs.setBorderRight(CellStyle.BORDER_NONE);
+                    month_cs.setBorderRight(CellStyle.BORDER_THIN);
+        //
+            CellStyle date_cs = wb.createCellStyle();
+            date_cs.cloneStyleFrom(new_cs);
+            Font date_f = wb.createFont();
+                date_f.setColor(IndexedColors.WHITE.getIndex());
+                date_cs.setFillForegroundColor(IndexedColors.GREEN.getIndex());
+                date_cs.setFillBackgroundColor(IndexedColors.GREEN.getIndex());
+                date_cs.setFillPattern(CellStyle.SOLID_FOREGROUND);
+                date_cs.setFont(date_f);
+        //
+            CellStyle blue_cs = wb.createCellStyle();
+            blue_cs.cloneStyleFrom(new_cs);
+            Font blue_f = wb.createFont();
+                blue_f.setColor(IndexedColors.LIGHT_BLUE.getIndex());
+            blue_cs = SetProp(blue_cs, blue_f, IndexedColors.LIGHT_BLUE.getIndex());
+            CellStyle postblue_cs = wb.createCellStyle();
+            postblue_cs.cloneStyleFrom(new_cs);
+                postblue_cs.setLeftBorderColor(IndexedColors.LIGHT_BLUE.getIndex());
+                postblue_cs.setBorderLeft(CellStyle.BORDER_THIN);
+        //
+            CellStyle green_cs = wb.createCellStyle();
+            green_cs.cloneStyleFrom(new_cs);
+            Font green_f = wb.createFont();
+                green_f.setColor(IndexedColors.GREEN.getIndex());
+            green_cs = SetProp(green_cs, green_f, IndexedColors.GREEN.getIndex());
+            CellStyle postgreen_cs = wb.createCellStyle();
+            postgreen_cs.cloneStyleFrom(new_cs);
+                postgreen_cs.setLeftBorderColor(IndexedColors.GREEN.getIndex());
+                postgreen_cs.setBorderLeft(CellStyle.BORDER_THIN);
+        //
+            CellStyle red_cs = wb.createCellStyle();
+            red_cs.cloneStyleFrom(new_cs);
+            Font red_f = wb.createFont();
+                red_f.setColor(IndexedColors.RED.getIndex());
+            red_cs = SetProp(red_cs, red_f, IndexedColors.RED.getIndex());
+            CellStyle postred_cs = wb.createCellStyle();
+            postred_cs.cloneStyleFrom(new_cs);
+                postred_cs.setLeftBorderColor(IndexedColors.RED.getIndex());
+                postred_cs.setBorderLeft(CellStyle.BORDER_THIN);
+        //
+        for(int i=0; i<cells.length;i++)
+        {
+            if( i==0)
+            {
+                line_cs[i] = date_cs;
+                continue;
+            }
+            if(i==2 || //кепки
+                    i==5 || //стаканы
+                    i==8||//термосы
+                    i==13||//бонус
+                    i==15||//вес кепок
+                    i==17||//вес стаканов
+                    i==19||//вес термосов
+                    i==25//ставка
+                    )
+            {
+                line_cs[i] = postblue_cs;
+                continue;
+            }
+            if(i==1 || i==4 || i==7|| i==12|| i==14|| i==16|| i==18|| i==24)
+            {
+                line_cs[i] = blue_cs;
+                continue;
+            }
+            if(i==11 || i==21)
+            {
+                line_cs[i] = postgreen_cs;
+                continue;
+            }
+            if(i==10||i==20)
+            {
+                line_cs[i] = green_cs;
+                continue;
+            }
+            if(i==27)
+            {
+                line_cs[i] = postred_cs;
+                continue;
+            }
+            if(i==26)
+            {
+                line_cs[i] = red_cs;
+                continue;
+            }
+                line_cs[i] = new_cs;
+        }
+        SetProp(wb);
+    }
     static private String month_to_rus_string(Date d)
     {
         String str = "";
@@ -142,7 +277,7 @@ public class CreateXLS
             str+="года";
         return str;
     }
-    static private Row create_row(Itog newitog, user newuser, Row r,CellStyle cs)
+    static private Row create_row(Itog newitog, user newuser, Row r, boolean mf)
     {
         Cell c;
         String ink = "";
@@ -188,7 +323,6 @@ public class CreateXLS
             mulct+="["+newitog.get_mulct_str()[i]+"] ";
         }
             String str = "";
-            //str +=date_to_rus_string(newitog.date_open)+"\t";//дата
             str +=newitog.date_open.getDate()+"\t";//дата
             str +=newitog.amount_k+"\t";//количество проданных кепок
             str +=newuser.price_k+"\t";//цена кепок
@@ -239,62 +373,24 @@ public class CreateXLS
         String[] cell=(str).split("\t");
         for (int i = 0; i < cell.length; i++)
         {
-                Font f = r.getSheet().getWorkbook().createFont();
-                f.setColor(IndexedColors.BLACK.getIndex());
-                //cs.setRightBorderColor(IndexedColors.BLACK.getIndex());
-            CellStyle new_cs = r.getSheet().getWorkbook().createCellStyle();
-            new_cs.cloneStyleFrom(cs);
-                new_cs.setLeftBorderColor(IndexedColors.BLACK.getIndex());
-            if( i==0)
-            {
-                f.setColor(IndexedColors.WHITE.getIndex());
-                new_cs.setFillBackgroundColor(IndexedColors.GREEN.getIndex());
-            }
-            if(i==1 || i==2 || //кепки
-                    i==4 || i==5 || //стаканы
-                    i==7 || i==8||//термосы
-                    i==12 || i==13||//бонус
-                    i==14 || i==15||//вес кепок
-                    i==16 || i==17||//вес стаканов
-                    i==18 || i==19||//вес термосов
-                    i==24 || i==25//ставка
-                    )
-            {
-                if(i==1 || i==4 || i==7|| i==12|| i==14|| i==16|| i==18|| i==24)
-                {
-                    f.setColor(IndexedColors.LIGHT_BLUE.getIndex());
-                }
-                new_cs.setLeftBorderColor(IndexedColors.LIGHT_BLUE.getIndex());
-            }
-            if( i==10 || i==11||
-                    i==20 || i==21)
-            {
-                if(i==10||i==20)
-                {
-                    f.setColor(IndexedColors.GREEN.getIndex());
-                }
-                new_cs.setLeftBorderColor(IndexedColors.GREEN.getIndex());
-            }
-            if( i==26 || i==27)
-            {
-                if(i==26)
-                {
-                    f.setColor(IndexedColors.RED.getIndex());
-                }
-                new_cs.setLeftBorderColor(IndexedColors.RED.getIndex());
-            }
-            new_cs.setFont(f);
             c = r.createCell(i);
             c.setCellValue(cell[i]);
-            c.setCellStyle(new_cs);
+            if(mf)
+            {
+                c.setCellStyle(new_day_cs[i]);
+            }
+            else
+            {
+                c.setCellStyle(line_cs[i]);
+            }
         }
         return r;
     }
     static public CellStyle cell_borders_back(CellStyle c, short c_bo, short c_ba, short s_bo)
     {
-                c.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+                c.setFillForegroundColor(c_ba);
                 c.setFillBackgroundColor(c_ba);
-                c.setFillPattern(IndexedColors.WHITE.getIndex());
+                c.setFillPattern(CellStyle.SOLID_FOREGROUND);
                 c.setTopBorderColor(c_bo);
                 c.setBottomBorderColor(c_bo);
                 c.setLeftBorderColor(c_bo);
@@ -352,11 +448,14 @@ public class CreateXLS
                 "День недели"+"\t"+
                 "на руки"
                 ).split("\t");
+        CellStyle black_cs = wb.createCellStyle();
+        black_cs = cell_borders_back(black_cs, IndexedColors.BLACK.getIndex(), IndexedColors.WHITE.getIndex(), CellStyle.BORDER_THIN);
+        Font black_f = wb.createFont();
+        SetProp(cell,black_cs,black_f, wb);
+            System.out.println("CreateXLS.SetProp good");
         Row r_ttl = null;
         r_ttl = s.createRow(0);
         Cell c_ttl = null;
-            CellStyle ttl_cs = wb.createCellStyle();
-            ttl_cs = cell_borders_back(ttl_cs, IndexedColors.BLACK.getIndex(), IndexedColors.GOLD.getIndex(), CellStyle.BORDER_MEDIUM);
         for (int i = 0; i < cell.length; i++)
         {
             c_ttl = r_ttl.createCell(i);
@@ -366,6 +465,7 @@ public class CreateXLS
                 int day = 0;
                 int mnth = 0;
                 int numrow = 1;
+            boolean monthflag = false;
         for(int i = 0; i < newitog.length; i++)
         {
                     user newuser = null;
@@ -384,34 +484,38 @@ public class CreateXLS
             }
             if(mnth != newitog[i].date_close.getMonth())
             {
-                CellStyle rs = wb.createCellStyle();
-                Font f_m = wb.createFont();
-                f_m.setColor(IndexedColors.WHITE.getIndex());
-                f_m.setFontHeight((short)333);
-                rs.setFont(f_m);
-                rs.setFillForegroundColor(IndexedColors.WHITE.getIndex());
-                rs.setFillBackgroundColor(IndexedColors.LIGHT_BLUE.getIndex());
-                rs.setFillPattern(IndexedColors.WHITE.getIndex());
                 Row row_m = s.createRow(numrow);
                 numrow++;
                 Cell c_m = row_m.createCell(0);
                 c_m.setCellValue(month_to_rus_string(newitog[i].date_close)+" "+(newitog[i].date_close.getYear()+1900));
-                c_m.setCellStyle(rs);
-                row_m.setRowStyle(rs);
+                c_m.setCellStyle(month_cs);
+                row_m.setRowStyle(month_cs);
                 row_m.setHeight((short)444);
             }
             Row row = s.createRow(numrow);
             numrow++;
-            CellStyle cs = wb.createCellStyle();
-            cs = cell_borders_back(cs, IndexedColors.BLACK.getIndex(), IndexedColors.WHITE.getIndex(), CellStyle.BORDER_MEDIUM);
             if(day!=newitog[i].date_close.getDate())
             {
-                cs.setTopBorderColor(IndexedColors.LIGHT_BLUE.getIndex());
-                cs.setBorderTop(CellStyle.BORDER_THIN);
+                monthflag = true;
+            }
+            else
+            {
+                monthflag = false;
             }
             day = newitog[i].date_close.getDate();
             mnth = newitog[i].date_close.getMonth();
-            create_row(newitog[i], newuser, row, cs);
+            create_row(newitog[i], newuser, row, monthflag);
+        }
+                Row row_m = s.createRow(numrow);
+                numrow++;
+                Cell c_m = row_m.createCell(0);
+                c_m.setCellValue("");
+                c_m.setCellStyle(month_cs);
+                row_m.setRowStyle(month_cs);
+                row_m.setHeight((short)444);
+        for (int i = 0; i<cell.length; i++)
+        {
+            s.autoSizeColumn(i);
         }
         FileOutputStream out = new FileOutputStream(name+".xls");
             wb.write(out);
