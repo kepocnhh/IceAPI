@@ -21,6 +21,68 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 public class CreateXLS
 {
+    static public void SetProp(String[] cells)
+    {
+        line_cs = new CellStyle[cells.length];
+        for(int i=0; i<cells.length;i++)
+        {
+            
+        }
+    }
+    static private CellStyle[] line_cs;
+    static private String month_to_rus_string(Date d)
+    {
+        String str = "";
+        if(d.getMonth()==0)
+        {
+            str+="Январь";
+        }
+        else if(d.getMonth()==1)
+        {
+            str+="Февраль";
+        }
+        else if(d.getMonth()==2)
+        {
+            str+="Март";
+        }
+        else if(d.getMonth()==3)
+        {
+            str+="Апрель";
+        }
+        else if(d.getMonth()==4)
+        {
+            str+="Май";
+        }
+        else if(d.getMonth()==5)
+        {
+            str+="Июнь";
+        }
+        else if(d.getMonth()==6)
+        {
+            str+="Июль";
+        }
+        else if(d.getMonth()==7)
+        {
+            str+="Август";
+        }
+        else if(d.getMonth()==8)
+        {
+            str+="Сентябрь";
+        }
+        else if(d.getMonth()==9)
+        {
+            str+="Октябрь";
+        }
+        else if(d.getMonth()==10)
+        {
+            str+="Ноябрь";
+        }
+        else if(d.getMonth()==11)
+        {
+            str+="Декабрь";
+        }
+        return str;
+    }
     static private String date_to_rus_string(Date d)
     {
         String str= "";
@@ -126,7 +188,8 @@ public class CreateXLS
             mulct+="["+newitog.get_mulct_str()[i]+"] ";
         }
             String str = "";
-            str +=date_to_rus_string(newitog.date_open)+"\t";//дата
+            //str +=date_to_rus_string(newitog.date_open)+"\t";//дата
+            str +=newitog.date_open.getDate()+"\t";//дата
             str +=newitog.amount_k+"\t";//количество проданных кепок
             str +=newuser.price_k+"\t";//цена кепок
                str += (newitog.amount_k*newuser.price_k)+"\t";//выручка за кепки
@@ -176,24 +239,81 @@ public class CreateXLS
         String[] cell=(str).split("\t");
         for (int i = 0; i < cell.length; i++)
         {
+                Font f = r.getSheet().getWorkbook().createFont();
+                f.setColor(IndexedColors.BLACK.getIndex());
+                //cs.setRightBorderColor(IndexedColors.BLACK.getIndex());
+            CellStyle new_cs = r.getSheet().getWorkbook().createCellStyle();
+            new_cs.cloneStyleFrom(cs);
+                new_cs.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+            if( i==0)
+            {
+                f.setColor(IndexedColors.WHITE.getIndex());
+                new_cs.setFillBackgroundColor(IndexedColors.GREEN.getIndex());
+            }
+            if(i==1 || i==2 || //кепки
+                    i==4 || i==5 || //стаканы
+                    i==7 || i==8||//термосы
+                    i==12 || i==13||//бонус
+                    i==14 || i==15||//вес кепок
+                    i==16 || i==17||//вес стаканов
+                    i==18 || i==19||//вес термосов
+                    i==24 || i==25//ставка
+                    )
+            {
+                if(i==1 || i==4 || i==7|| i==12|| i==14|| i==16|| i==18|| i==24)
+                {
+                    f.setColor(IndexedColors.LIGHT_BLUE.getIndex());
+                }
+                new_cs.setLeftBorderColor(IndexedColors.LIGHT_BLUE.getIndex());
+            }
+            if( i==10 || i==11||
+                    i==20 || i==21)
+            {
+                if(i==10||i==20)
+                {
+                    f.setColor(IndexedColors.GREEN.getIndex());
+                }
+                new_cs.setLeftBorderColor(IndexedColors.GREEN.getIndex());
+            }
+            if( i==26 || i==27)
+            {
+                if(i==26)
+                {
+                    f.setColor(IndexedColors.RED.getIndex());
+                }
+                new_cs.setLeftBorderColor(IndexedColors.RED.getIndex());
+            }
+            new_cs.setFont(f);
             c = r.createCell(i);
             c.setCellValue(cell[i]);
-            c.setCellStyle(cs);
+            c.setCellStyle(new_cs);
         }
         return r;
+    }
+    static public CellStyle cell_borders_back(CellStyle c, short c_bo, short c_ba, short s_bo)
+    {
+                c.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+                c.setFillBackgroundColor(c_ba);
+                c.setFillPattern(IndexedColors.WHITE.getIndex());
+                c.setTopBorderColor(c_bo);
+                c.setBottomBorderColor(c_bo);
+                c.setLeftBorderColor(c_bo);
+                c.setRightBorderColor(c_bo);
+                c.setBorderTop(s_bo);
+                c.setBorderBottom(s_bo);
+                c.setBorderLeft(s_bo);
+                c.setBorderRight(s_bo);
+                return c;
     }
     static public void _CreateXLS(Itog newitog[],String name,List<user> ul) 
             throws FileNotFoundException, IOException, ClassNotFoundException
     {
         Workbook wb = new HSSFWorkbook();
         Sheet s = wb.createSheet();
-        Row r = null;
-        Cell c = null;
-        String[] cell;
         wb.setSheetName(0, "ICENGO" );
         //title/////////////////////////////////////////////////////////////
-        r = s.createRow(0);
         //
+        String[] cell;
         cell=(
                 "Дата"+"\t"+
                 "Кепки"+"\t"+
@@ -232,12 +352,20 @@ public class CreateXLS
                 "День недели"+"\t"+
                 "на руки"
                 ).split("\t");
+        Row r_ttl = null;
+        r_ttl = s.createRow(0);
+        Cell c_ttl = null;
+            CellStyle ttl_cs = wb.createCellStyle();
+            ttl_cs = cell_borders_back(ttl_cs, IndexedColors.BLACK.getIndex(), IndexedColors.GOLD.getIndex(), CellStyle.BORDER_MEDIUM);
         for (int i = 0; i < cell.length; i++)
         {
-            c = r.createCell(i);
-            c.setCellValue(cell[i]);
+            c_ttl = r_ttl.createCell(i);
+            c_ttl.setCellValue(cell[i]);
+            c_ttl.setCellStyle(ttl_cs);
         }
                 int day = 0;
+                int mnth = 0;
+                int numrow = 1;
         for(int i = 0; i < newitog.length; i++)
         {
                     user newuser = null;
@@ -254,15 +382,35 @@ public class CreateXLS
                 System.out.println("user null\n"+newitog[i].user_email);
                 continue;
             }
-                //System.out.println("--> "+day);
-            Row row = s.createRow(i+1);
+            if(mnth != newitog[i].date_close.getMonth())
+            {
+                CellStyle rs = wb.createCellStyle();
+                Font f_m = wb.createFont();
+                f_m.setColor(IndexedColors.WHITE.getIndex());
+                f_m.setFontHeight((short)333);
+                rs.setFont(f_m);
+                rs.setFillForegroundColor(IndexedColors.WHITE.getIndex());
+                rs.setFillBackgroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+                rs.setFillPattern(IndexedColors.WHITE.getIndex());
+                Row row_m = s.createRow(numrow);
+                numrow++;
+                Cell c_m = row_m.createCell(0);
+                c_m.setCellValue(month_to_rus_string(newitog[i].date_close)+" "+(newitog[i].date_close.getYear()+1900));
+                c_m.setCellStyle(rs);
+                row_m.setRowStyle(rs);
+                row_m.setHeight((short)444);
+            }
+            Row row = s.createRow(numrow);
+            numrow++;
             CellStyle cs = wb.createCellStyle();
+            cs = cell_borders_back(cs, IndexedColors.BLACK.getIndex(), IndexedColors.WHITE.getIndex(), CellStyle.BORDER_MEDIUM);
             if(day!=newitog[i].date_close.getDate())
             {
-                cs.setTopBorderColor(IndexedColors.BLUE.getIndex());
-                cs.setBorderTop(CellStyle.BORDER_MEDIUM);
+                cs.setTopBorderColor(IndexedColors.LIGHT_BLUE.getIndex());
+                cs.setBorderTop(CellStyle.BORDER_THIN);
             }
             day = newitog[i].date_close.getDate();
+            mnth = newitog[i].date_close.getMonth();
             create_row(newitog[i], newuser, row, cs);
         }
         FileOutputStream out = new FileOutputStream(name+".xls");
