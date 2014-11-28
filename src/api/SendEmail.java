@@ -66,6 +66,34 @@ public class SendEmail
             msg.setContent(multipart);
             Transport.send(msg);
     }
+    public static void sendFile(
+            String toAddress,
+            String subject,
+            String content,
+            String File_path,
+            String File_name)
+            throws AddressException, MessagingException, UnsupportedEncodingException
+    {
+            Message msg = new MimeMessage(Session.getInstance(properties, new Authenticator()
+            {
+                public PasswordAuthentication getPasswordAuthentication()
+                {
+                    return new PasswordAuthentication(userName, password);
+                }
+            }));
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toAddress));
+            msg.setSubject(subject);
+            Multipart multipart = new MimeMultipart();
+            MimeBodyPart PdfBP = new MimeBodyPart();
+            PdfBP.setDataHandler(new DataHandler(new FileDataSource(File_path)));
+            PdfBP.setFileName(MimeUtility.encodeText( new String( (File_name).getBytes( "utf-8" ) ), "Cp1251", "B" ) );
+            MimeBodyPart TextBP = new MimeBodyPart();
+            TextBP.setText(content);
+            multipart.addBodyPart(PdfBP);
+            multipart.addBodyPart(TextBP);
+            msg.setContent(multipart);
+            Transport.send(msg);
+    }
     public static void sendText(
             String toAddress,
             String subject,
